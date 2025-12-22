@@ -2,7 +2,7 @@
 
 # The Sparsity Trap
 
-### Why MSE Fails at 2µm Resolution — and How Poisson Loss Saves Single-Molecule Spatial Transcriptomics
+### Why MSE Fails at 2µm Resolution with the HIST2ST decoder — and How Poisson Loss Rescues
 
 [![Resolution](https://img.shields.io/badge/Resolution-2µm-blue?style=for-the-badge)](https://www.10xgenomics.com/products/visium-hd)
 [![Loss](https://img.shields.io/badge/Solution-Poisson%20NLL-green?style=for-the-badge)](https://en.wikipedia.org/wiki/Poisson_distribution)
@@ -316,6 +316,7 @@ This benchmark builds on our previous work:
 
 
 </div>
+
 
 
 
