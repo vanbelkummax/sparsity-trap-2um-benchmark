@@ -10,10 +10,10 @@
 
 <br>
 
-**We demonstrate that the "barrier" to 2µm training was not the resolution itself,**
+**I demonstrate that the "barrier" to 2µm training was not the resolution itself,**
 **but the incompatibility of MSE with sparse single-molecule data.**
 
-**By validating the Poisson NLL solution, we have effectively unlocked native 2µm supervision.**
+**By validating the Poisson NLL solution, I have effectively unlocked native 2µm supervision.**
 
 </div>
 
@@ -273,5 +273,6 @@ This benchmark builds on our previous work:
 
 
 </div>
+
 
 
