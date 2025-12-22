@@ -27,8 +27,6 @@
 <img src="figures/results_table.png" width="700">
 </div>
 
-The Sparsity Trap is real — MSE collapses from 0.510 → 0.188 PCC when applied to 2µm data
-
 ---
 
 ### 2. The Solution Works: Poisson Recovers Performance
@@ -295,7 +293,7 @@ sparsity-trap-2um-benchmark/
 
 ## Key Takeaways
 
-1. **The Sparsity Trap is real** — MSE collapses from 0.510 → 0.188 PCC when applied to 2µm data
+1. **The Sparsity Trap is real** — MSE collapses PCC when applied to 2µm data
 2. **Poisson NLL solves it** — recovers to 0.368 PCC with the highest SSIM (0.553)
 3. **The effect scales with sparsity** — sparse genes (secretory, immune) show the largest gains
 4. **Biological signals are rescued** — genes like MUC12 go from noise (0.037) to signal (0.521)
@@ -318,6 +316,7 @@ This benchmark builds on our previous work:
 
 
 </div>
+
 
 
 
