@@ -10,10 +10,10 @@
 
 <br>
 
-**I demonstrate that the "barrier" to 2µm training was not the resolution itself,**
+**This work demonstrate that the "barrier" to 2µm training was not the resolution itself,**
 **but the incompatibility of MSE with sparse single-molecule data.**
 
-**By validating the Poisson NLL solution, I have effectively unlocked native 2µm supervision.**
+**By validating the Poisson NLL solution, this work has effectively unlocked native 2µm supervision.**
 
 </div>
 
@@ -258,7 +258,10 @@ sparsity-trap-2um-benchmark/
 3. **The effect scales with sparsity** — sparse genes (secretory, immune) show the largest gains
 4. **Biological signals are rescued** — genes like MUC12 go from noise (0.037) to signal (0.521)
 5. **48/50 genes benefit** — this is a near-universal solution, not a special case
+   
+## Future Directions
 
+We validated this mechanism on Patient P5 because it has the most diverse tissue structures. We are currently running the P1/P2 cross-validation to confirm the scaling laws hold across patients.
 ---
 
 ## Related Work
@@ -273,6 +276,7 @@ This benchmark builds on our previous work:
 
 
 </div>
+
 
 
 
