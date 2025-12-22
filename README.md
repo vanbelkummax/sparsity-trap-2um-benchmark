@@ -27,6 +27,7 @@
 <img src="figures/results_table.png" width="700">
 </div>
 
+The Sparsity Trap is real — MSE collapses from 0.510 → 0.188 PCC when applied to 2µm data
 
 ---
 
@@ -317,6 +318,7 @@ This benchmark builds on our previous work:
 
 
 </div>
+
 
 
 
