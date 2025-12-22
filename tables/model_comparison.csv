@@ -1,0 +1,5 @@
+Model,Resolution,Loss,Encoder,PCC_8um,SSIM_2um,Notes
+Img2ST-Net (Baseline),8µm,MSE,Virchow2,0.368,N/A,External published baseline
+Model A (8µm MSE),8µm,MSE,Virchow2,0.51,N/A,Best 8µm result
+Model D (2µm MSE),2µm,MSE,Virchow2,0.188,0.277,Sparsity collapse
+Model E (2µm Poisson),2µm,Poisson NLL,Virchow2,0.368,0.553,Recovers 8µm accuracy

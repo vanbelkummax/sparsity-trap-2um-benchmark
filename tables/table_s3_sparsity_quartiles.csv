@@ -1,0 +1,5 @@
+Sparsity_Quartile,N_genes,Sparsity_Range_pct,Mean_Delta_PCC,Std_Delta_PCC,Mean_Delta_SSIM,N_Poisson_wins,Win_Rate_pct
+Q1 (Dense),14,74.9-94.7,0.1079,0.1214,0.1193,13/14,92.9
+Q2,11,95.2-96.4,0.2236,0.1353,0.2933,10/11,90.9
+Q3,13,96.5-97.5,0.226,0.0857,0.3251,13/13,100.0
+Q4 (Sparse),12,97.7-99.2,0.1748,0.0448,0.3907,12/12,100.0
