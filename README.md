@@ -33,8 +33,6 @@
 | **Model D** | **MSE** | **2µm** | **0.188** | **0.277** |
 | **Model E** | **Poisson** | **2µm** | **0.368** | **0.553** |
 
-**Key Finding**: Training with MSE on 2µm data causes PCC to collapse from 0.510 → 0.188, **worse than doing nothing**. This proves the "Sparsity Trap" is real and catastrophic.
-
 ---
 
 ### 2. The Solution Works: Poisson Recovers Performance
@@ -324,6 +322,7 @@ This benchmark builds on our previous work:
 
 
 </div>
+
 
 
 
