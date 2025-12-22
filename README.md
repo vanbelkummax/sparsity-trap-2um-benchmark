@@ -271,9 +271,7 @@ This benchmark builds on our previous work:
 
 <div align="center">
 
-**Vanderbilt University Medical Center**
-
-*Spatial Biology & Computational Pathology*
 
 </div>
+
 
