@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Create "Rescue" figures for genes where Poisson dramatically outperforms MSE.
-Format matches the WSI kingmaker figures exactly.
+Uses EXACT same methods as the kingmaker WSI figures.
 """
 import json
 import numpy as np
@@ -9,32 +9,31 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from pathlib import Path
 from PIL import Image
-from scipy.ndimage import gaussian_filter
 
 # Configuration
 DATA_DIR = Path('/mnt/x/mse-vs-poisson-2um-benchmark/figure_data')
 OUTPUT_DIR = Path('/mnt/x/sparsity-trap-2um-benchmark/figures/rescue')
 OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
-# Match kingmaker style exactly
 plt.rcParams.update({
     'font.family': 'sans-serif',
     'font.size': 12,
-    'axes.titlesize': 16,
+    'axes.titlesize': 14,
     'axes.titleweight': 'bold',
     'figure.dpi': 150,
     'savefig.dpi': 300,
 })
 
 
-def stitch_wsi(data, gene_idx, coord_map, patch_size=128):
-    """Stitch patches into WSI using coordinates."""
+def stitch_wsi(data, gene_idx, masks, coord_map, patch_size=128):
+    """Stitch patches into WSI using coordinates, with proper masking."""
     row_offset = coord_map['row_offset']
     col_offset = coord_map['col_offset']
     n_rows = coord_map['n_rows']
     n_cols = coord_map['n_cols']
 
     wsi = np.full((n_rows * patch_size, n_cols * patch_size), np.nan)
+    mask_wsi = np.zeros((n_rows * patch_size, n_cols * patch_size))
 
     for patch_idx, (row, col) in enumerate(coord_map['patch_coords']):
         if patch_idx >= len(data):
@@ -44,9 +43,19 @@ def stitch_wsi(data, gene_idx, coord_map, patch_size=128):
         if 0 <= r < n_rows and 0 <= c < n_cols:
             r_start = r * patch_size
             c_start = c * patch_size
-            wsi[r_start:r_start+patch_size, c_start:c_start+patch_size] = data[patch_idx, gene_idx]
 
-    return wsi
+            patch_data = data[patch_idx, gene_idx]
+            patch_mask = masks[patch_idx, 0] if masks.ndim == 4 else masks[patch_idx]
+
+            # Only place data where mask is valid
+            mask_bool = patch_mask > 0.5
+            wsi_patch = np.full((patch_size, patch_size), np.nan)
+            wsi_patch[mask_bool] = patch_data[mask_bool]
+
+            wsi[r_start:r_start+patch_size, c_start:c_start+patch_size] = wsi_patch
+            mask_wsi[r_start:r_start+patch_size, c_start:c_start+patch_size] = patch_mask
+
+    return wsi, mask_wsi
 
 
 def stitch_he_wsi(images, coord_map, patch_size=128):
@@ -56,7 +65,7 @@ def stitch_he_wsi(images, coord_map, patch_size=128):
     n_rows = coord_map['n_rows']
     n_cols = coord_map['n_cols']
 
-    wsi = np.ones((n_rows * patch_size, n_cols * patch_size, 3)) * 0.9  # Light gray background
+    wsi = np.ones((n_rows * patch_size, n_cols * patch_size, 3)) * 0.9
 
     for patch_idx, (row, col) in enumerate(coord_map['patch_coords']):
         if patch_idx >= len(images):
@@ -67,7 +76,6 @@ def stitch_he_wsi(images, coord_map, patch_size=128):
             r_start = r * patch_size
             c_start = c * patch_size
 
-            # Resize from 224x224 to 128x128
             img = images[patch_idx]
             img_pil = Image.fromarray((img * 255).astype(np.uint8))
             img_resized = np.array(img_pil.resize((patch_size, patch_size), Image.LANCZOS)) / 255.0
@@ -76,8 +84,8 @@ def stitch_he_wsi(images, coord_map, patch_size=128):
     return wsi
 
 
-def create_rescue_figure(gene_name, gene_info, images, labels, preds_d, preds_e, coord_map, output_path):
-    """Create a 4-panel rescue comparison matching kingmaker format: H&E, GT, MSE, Poisson."""
+def create_rescue_figure(gene_name, gene_info, images, labels, preds_d, preds_e, masks, coord_map, output_path):
+    """Create a 4-panel rescue comparison matching kingmaker format exactly."""
 
     gene_idx = gene_info['idx']
     mse_pcc = gene_info['mse_pcc']
@@ -85,65 +93,66 @@ def create_rescue_figure(gene_name, gene_info, images, labels, preds_d, preds_e,
     delta = gene_info['delta']
     category = gene_info['category']
 
-    # Stitch all WSIs
+    # Stitch all WSIs with proper masking
     he_wsi = stitch_he_wsi(images, coord_map)
-    gt_wsi = stitch_wsi(labels, gene_idx, coord_map)
-    mse_wsi = stitch_wsi(preds_d, gene_idx, coord_map)
-    poisson_wsi = stitch_wsi(preds_e, gene_idx, coord_map)
+    gt_wsi, mask_wsi = stitch_wsi(labels, gene_idx, masks, coord_map)
+    mse_wsi, _ = stitch_wsi(preds_d, gene_idx, masks, coord_map)
+    poisson_wsi, _ = stitch_wsi(preds_e, gene_idx, masks, coord_map)
 
-    # Apply light smoothing for visualization
-    gt_smooth = gaussian_filter(np.nan_to_num(gt_wsi), sigma=1)
-    mse_smooth = gaussian_filter(np.nan_to_num(mse_wsi), sigma=1)
-    poisson_smooth = gaussian_filter(np.nan_to_num(poisson_wsi), sigma=1)
+    mask_bool = mask_wsi > 0.5
 
-    # Color scale from GT
-    valid_gt = gt_wsi[~np.isnan(gt_wsi)]
-    if len(valid_gt) > 0 and (valid_gt > 0).sum() > 0:
-        vmax = np.percentile(valid_gt[valid_gt > 0], 98)
-    else:
-        vmax = 1
-    vmax = max(vmax, 0.1)
+    # Get valid data for scaling
+    gt_valid = gt_wsi[~np.isnan(gt_wsi)]
+    mse_valid = mse_wsi[~np.isnan(mse_wsi)]
+    poisson_valid = poisson_wsi[~np.isnan(poisson_wsi)]
+
+    # Per-panel optimal scaling with percentiles (matching kingmaker exactly)
+    gt_vmax = np.percentile(gt_valid, 98) if len(gt_valid) > 0 else 1
+    mse_vmin = np.percentile(mse_valid, 1) if len(mse_valid) > 0 else 0
+    mse_vmax = np.percentile(mse_valid, 99) if len(mse_valid) > 0 else 1
+    poisson_vmin = np.percentile(poisson_valid, 1) if len(poisson_valid) > 0 else 0
+    poisson_vmax = np.percentile(poisson_valid, 99) if len(poisson_valid) > 0 else 1
 
     # Create figure - 4 panels like kingmaker
     fig = plt.figure(figsize=(20, 6), facecolor='white')
-    gs = GridSpec(1, 5, figure=fig, width_ratios=[1, 1, 1, 1, 0.05], wspace=0.03)
+    gs = GridSpec(1, 4, figure=fig, wspace=0.12)
 
-    cmap = 'YlOrRd'
+    # Use magma with light gray for masked regions (EXACT match to kingmaker)
+    cmap = plt.cm.magma.copy()
+    cmap.set_bad(color='#e0e0e0')
 
     # Panel 1: H&E
     ax_he = fig.add_subplot(gs[0, 0])
     ax_he.imshow(he_wsi)
-    ax_he.set_title('H&E', fontsize=16, fontweight='bold', pad=12)
+    ax_he.set_title('H&E', fontsize=14, fontweight='bold', pad=10)
     ax_he.axis('off')
 
     # Panel 2: Ground Truth
     ax_gt = fig.add_subplot(gs[0, 1])
-    im = ax_gt.imshow(gt_smooth, cmap=cmap, vmin=0, vmax=vmax, interpolation='bilinear')
-    ax_gt.set_title('Ground Truth', fontsize=16, fontweight='bold', pad=12)
+    im_gt = ax_gt.imshow(gt_wsi, cmap=cmap, vmin=0, vmax=gt_vmax, interpolation='nearest')
+    ax_gt.set_title('Ground Truth', fontsize=14, fontweight='bold', pad=10)
     ax_gt.axis('off')
+    plt.colorbar(im_gt, ax=ax_gt, fraction=0.046, pad=0.02)
 
     # Panel 3: MSE (collapsed)
     ax_mse = fig.add_subplot(gs[0, 2])
-    ax_mse.imshow(mse_smooth, cmap=cmap, vmin=0, vmax=vmax, interpolation='bilinear')
-    ax_mse.set_title(f'Model D (MSE)\nPCC = {mse_pcc:.3f}', fontsize=16, fontweight='bold',
-                     color='#d63031', pad=12)
+    im_mse = ax_mse.imshow(mse_wsi, cmap=cmap, vmin=mse_vmin, vmax=mse_vmax, interpolation='nearest')
+    ax_mse.set_title(f'Model D (MSE)\nPCC = {mse_pcc:.3f}', fontsize=14, fontweight='bold',
+                     color='#d63031', pad=10)
     ax_mse.axis('off')
+    plt.colorbar(im_mse, ax=ax_mse, fraction=0.046, pad=0.02)
 
     # Panel 4: Poisson (rescued)
     ax_poisson = fig.add_subplot(gs[0, 3])
-    ax_poisson.imshow(poisson_smooth, cmap=cmap, vmin=0, vmax=vmax, interpolation='bilinear')
-    ax_poisson.set_title(f'Model E (Poisson)\nPCC = {poisson_pcc:.3f}', fontsize=16, fontweight='bold',
-                         color='#00b894', pad=12)
+    im_poisson = ax_poisson.imshow(poisson_wsi, cmap=cmap, vmin=poisson_vmin, vmax=poisson_vmax, interpolation='nearest')
+    ax_poisson.set_title(f'Model E (Poisson)\nPCC = {poisson_pcc:.3f}', fontsize=14, fontweight='bold',
+                         color='#00b894', pad=10)
     ax_poisson.axis('off')
-
-    # Colorbar
-    cbar_ax = fig.add_subplot(gs[0, 4])
-    cbar = fig.colorbar(im, cax=cbar_ax)
-    cbar.set_label('Expression', fontsize=12)
+    plt.colorbar(im_poisson, ax=ax_poisson, fraction=0.046, pad=0.02)
 
     # Suptitle
     fig.suptitle(f'{gene_name} ({category}) — Δ PCC = +{delta:.3f}',
-                 fontsize=18, fontweight='bold', y=0.98)
+                 fontsize=16, fontweight='bold', y=0.98)
 
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white', pad_inches=0.1)
     plt.savefig(output_path.with_suffix('.pdf'), bbox_inches='tight', facecolor='white', pad_inches=0.1)
@@ -159,6 +168,7 @@ def main():
     preds_d = np.load(DATA_DIR / 'predictions_model_d.npy')
     preds_e = np.load(DATA_DIR / 'predictions_model_e.npy')
     labels = np.load(DATA_DIR / 'labels_2um.npy')
+    masks = np.load(DATA_DIR / 'masks_2um.npy')
     images = np.load(DATA_DIR / 'images.npy')
 
     with open(DATA_DIR / 'gene_names.json') as f:
@@ -186,7 +196,7 @@ def main():
 
         create_rescue_figure(
             gene_name, gene_info,
-            images, labels, preds_d, preds_e, coord_map,
+            images, labels, preds_d, preds_e, masks, coord_map,
             output_path
         )
 
