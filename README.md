@@ -27,11 +27,6 @@
 <img src="figures/results_table.png" width="700">
 </div>
 
-| Model | Loss | Resolution | PCC (8µm) | SSIM (2µm) |
-|:-----:|:----:|:----------:|:---------:|:----------:|
-| Model A | MSE | 8µm | 0.510 | N/A |
-| **Model D** | **MSE** | **2µm** | **0.188** | **0.277** |
-| **Model E** | **Poisson** | **2µm** | **0.368** | **0.553** |
 
 ---
 
@@ -322,6 +317,7 @@ This benchmark builds on our previous work:
 
 
 </div>
+
 
 
 
