@@ -197,25 +197,73 @@ The model can predict **sharp, high-intensity structures** without being penaliz
 
 ## Methods
 
-### Architecture
-- **Encoder**: Virchow2 (frozen foundation model)
-- **Decoder**: Transformer-based (trainable)
-- **Output**: 128×128 expression maps per 256µm patch
+### Model Architecture
 
-### Training
+<div align="center">
+
+| Component | Details |
+|-----------|---------|
+| **Encoder** | [Virchow2](https://huggingface.co/paige-ai/Virchow2) (1.1B params, frozen) |
+| **Encoder Output** | 1024-dim features at 16×16 spatial resolution |
+| **Decoder** | Hist2ST Transformer |
+| **Decoder Hidden** | 512 channels, 8 attention heads |
+| **k-Neighbors** | 8 (local attention window) |
+| **Dropout** | 0.1 |
+| **Final Head** | 1×1 Conv → 50 genes |
+| **Output** | 128×128 expression maps (2µm resolution) |
+
+</div>
+
+The encoder (Virchow2) is a pathology foundation model trained on 3M+ H&E slides. We freeze all encoder weights and only train the decoder, which upsamples from 16×16 → 128×128 while predicting gene expression.
+
+### Training Configuration
+
+<div align="center">
+
+| Parameter | Value |
+|-----------|-------|
+| **Input Size** | 224×224 pixels (256µm patch) |
+| **Batch Size** | 8 |
+| **Gradient Accumulation** | 4 (effective batch = 32) |
+| **Learning Rate** | 5e-5 |
+| **Optimizer** | AdamW (weight_decay=1e-4) |
+| **LR Schedule** | Cosine with 2-epoch warmup |
+| **Epochs** | 40 (early stopping, patience=10) |
+| **Augmentation** | HFlip, VFlip, Rot90 (p=0.5 each) |
+| **Color Jitter** | brightness=0.1, contrast=0.1, saturation=0.1, hue=0.02 |
+
+</div>
+
+### Loss Functions
+
 ```python
 # Model D: Standard MSE (collapses on sparse data)
 loss = F.mse_loss(pred, target)
 
 # Model E: Poisson NLL (handles sparsity correctly)
-pred_rate = F.softplus(pred) + 1e-6  # Ensure positive
-loss = pred_rate - target * torch.log(pred_rate)
-loss = loss.mean()
+# Model outputs log(rate), bias initialized to -3.0
+pred_log_rate = model(images)  # [B, 50, 128, 128]
+rate = torch.exp(pred_log_rate)
+
+# Masked Poisson NLL - only supervise valid tissue regions
+nll = rate - target * pred_log_rate
+loss = (nll * mask).sum() / mask.sum()
 ```
 
-### Evaluation
-- **PCC**: Pearson correlation at 8µm (aggregated for biological relevance)
+**Key insight**: The Poisson loss is computed only on tissue regions (using `mask_2um`), preventing the model from being penalized for background areas.
+
+### Data
+
+- **Dataset**: Visium HD colorectal cancer (3 patients: P1, P2, P5)
+- **Resolution**: 2µm bins (native), 8µm for aggregated evaluation
+- **Genes**: Top 50 most variable genes
+- **Train/Test**: Leave-one-patient-out cross-validation (test on P5)
+- **Labels**: Raw UMI counts (not normalized) - critical for Poisson loss
+
+### Evaluation Metrics
+- **PCC**: Pearson correlation at 8µm (4×4 binned, biologically relevant)
 - **SSIM**: Structural similarity at 2µm (native resolution fidelity)
+- **Per-gene metrics**: Computed separately for each of 50 genes
 
 ---
 
