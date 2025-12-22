@@ -92,7 +92,7 @@ For **MUC12** (a secreted mucin), MSE produces essentially random noise (PCC = 0
 
 ## Visual Evidence: WSI Comparisons
 
-### Secretory Pattern (PIGR) — Luminal Filling
+### Secretory Pattern (PIGR) 
 <div align="center">
 <img src="figures/wsi/PIGR_2um_WSI_kingmaker.jpg" width="900">
 </div>
@@ -101,7 +101,7 @@ For **MUC12** (a secreted mucin), MSE produces essentially random noise (PCC = 0
 
 ---
 
-### Epithelial Pattern (CEACAM5) — Glandular Structure
+### Epithelial Pattern (CEACAM5)
 <div align="center">
 <img src="figures/wsi/CEACAM5_2um_WSI_kingmaker.jpg" width="900">
 </div>
@@ -110,7 +110,7 @@ For **MUC12** (a secreted mucin), MSE produces essentially random noise (PCC = 0
 
 ---
 
-### Stromal Pattern (COL1A1) — Fibrous Networks
+### Stromal Pattern (COL1A1) 
 <div align="center">
 <img src="figures/wsi/COL1A1_2um_WSI_kingmaker.jpg" width="900">
 </div>
@@ -276,3 +276,4 @@ This benchmark builds on our previous work:
 *Spatial Biology & Computational Pathology*
 
 </div>
+
