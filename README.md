@@ -128,6 +128,46 @@ For **MUC12** (a secreted mucin), MSE produces essentially random noise (PCC = 0
 
 ---
 
+## Rescue Cases: From Noise to Biology
+
+These genes show the most dramatic improvement — MSE produces essentially random noise, but Poisson **rescues the biological signal**.
+
+### MUC12 (Secretory) — The Best Rescue: Δ PCC = +0.484
+<div align="center">
+<img src="figures/rescue/MUC12_rescue.jpg" width="900">
+</div>
+
+*MUC12 (secreted mucin): MSE PCC = 0.037 (noise) → Poisson PCC = 0.521 (signal). The most dramatic rescue in our dataset.*
+
+---
+
+### JCHAIN (Immune) — Δ PCC = +0.393
+<div align="center">
+<img src="figures/rescue/JCHAIN_rescue.jpg" width="900">
+</div>
+
+*JCHAIN (immunoglobulin J chain): Critical for secreted antibodies. MSE fails completely; Poisson recovers the sparse immune signal.*
+
+---
+
+### DES (Stromal) — Δ PCC = +0.322
+<div align="center">
+<img src="figures/rescue/DES_rescue.jpg" width="900">
+</div>
+
+*DES (desmin): A muscle-specific intermediate filament. MSE produces negative correlation (-0.034); Poisson restores biological structure.*
+
+---
+
+### FCGBP (Secretory) — Δ PCC = +0.295
+<div align="center">
+<img src="figures/rescue/FCGBP_rescue.jpg" width="900">
+</div>
+
+*FCGBP (Fc fragment of IgG binding protein): Secreted into the mucus layer. Another example of Poisson rescuing a sparse secretory marker.*
+
+---
+
 ## The Mathematical Explanation
 
 ### Why MSE Fails
@@ -184,11 +224,16 @@ loss = loss.mean()
 ```
 sparsity-trap-2um-benchmark/
 ├── figures/
-│   ├── wsi/                    # WSI kingmaker comparisons
+│   ├── wsi/                    # WSI biological pattern comparisons
 │   │   ├── PIGR_2um_WSI_kingmaker.jpg
 │   │   ├── CEACAM5_2um_WSI_kingmaker.jpg
 │   │   ├── COL1A1_2um_WSI_kingmaker.jpg
 │   │   └── CD74_2um_WSI_kingmaker.jpg
+│   ├── rescue/                 # Dramatic rescue cases
+│   │   ├── MUC12_rescue.jpg    # Best rescue: Δ PCC = +0.484
+│   │   ├── JCHAIN_rescue.jpg
+│   │   ├── DES_rescue.jpg
+│   │   └── FCGBP_rescue.jpg
 │   ├── results_table.png       # Model comparison table
 │   ├── figure_combined.png     # Combined evidence figure
 │   ├── figure4d_sparsity_stratified.png
