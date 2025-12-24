@@ -36,9 +36,10 @@
 </div>
 
 Model E (Poisson) achieves:
-- **PCC = 0.368** — matching the Img2ST-Net published baseline
-- **SSIM = 0.553** — the **highest structural fidelity** of any model
-- **48/50 genes improved** — near-universal benefit
+- **Global PCC_8um = 0.510** — correlation across all predictions
+- **Per-gene mean PCC_8um = 0.368** — matching Img2ST-Net baseline
+- **SSIM_2um = 0.553** — the **highest structural fidelity** of any model
+- **48/50 genes improved** (per-gene PCC_8um delta > 0) — near-universal benefit
 
 ---
 
@@ -48,7 +49,7 @@ Model E (Poisson) achieves:
 <img src="figures/figure4d_sparsity_stratified.png" width="700">
 </div>
 
-There is a **statistically significant positive correlation** (Spearman ρ = 0.243, p < 0.001) between gene sparsity and Poisson advantage:
+There is a **positive trend** (Spearman ρ = 0.24, p = 0.09; computed from per-gene PCC_8um deltas in table_s1_pergene_metrics.csv) between gene sparsity and Poisson advantage. While not statistically significant at α = 0.05, all 7 functional categories show positive mean benefit:
 
 | Gene Category | Sparsity | Δ PCC (Poisson - MSE) | Poisson Wins |
 |:-------------:|:--------:|:---------------------:|:------------:|
