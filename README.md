@@ -298,7 +298,94 @@ sparsity-trap-2um-benchmark/
 3. **The effect scales with sparsity** — sparse genes (secretory, immune) show the largest gains
 4. **Biological signals are rescued** — genes like MUC12 go from noise (0.037) to signal (0.521)
 5. **48/50 genes benefit** — this is a near-universal solution, not a special case
-   
+
+---
+
+## NEW: 2×2 Factorial Experiment (Decoder × Loss)
+
+We extended the analysis with a clean factorial design testing **Decoder Architecture** (Hist2ST vs Img2ST) × **Loss Function** (MSE vs Poisson).
+
+### Factorial Design
+
+|            | MSE Loss | Poisson Loss |
+|------------|----------|--------------|
+| **Hist2ST** (CNN+Trans+GNN) | Model D' | Model E' |
+| **Img2ST** (MiniUNet) | Model G | Model F |
+
+### Results Summary
+
+| Model | Decoder | Loss | SSIM_2µm | PCC_2µm | PCC_8µm | Best Epoch |
+|-------|---------|------|----------|---------|---------|------------|
+| **D'** | Hist2ST | MSE | 0.227 | 0.309 | 0.457 | 40 |
+| **E'** | Hist2ST | Poisson | **0.576** | 0.313 | 0.466 | 22 |
+| **F** | Img2ST | Poisson | 0.388 | 0.298 | 0.441 | 35 |
+| **G** | Img2ST | MSE | 0.154 | 0.260 | 0.382 | 36 |
+
+### Training Dynamics
+<div align="center">
+<img src="figures/figure1_training_dynamics.png" width="900">
+</div>
+
+*Poisson models (E', F) converge faster and reach higher performance. MSE models (D', G) either plateau early or never converge.*
+
+### Interaction Effect
+<div align="center">
+<img src="figures/figure2_interaction_plot.png" width="900">
+</div>
+
+*Non-parallel lines indicate an interaction: Poisson rescue is stronger for Hist2ST (+0.349) than Img2ST (+0.234).*
+
+### Per-Gene Analysis (50 Genes)
+<div align="center">
+<img src="figures/figure3_per_gene_heatmap.png" width="800">
+</div>
+
+*Performance heatmap showing SSIM and PCC for all 50 genes across 4 models. E' (Hist2ST + Poisson) dominates.*
+
+### Sparsity vs Poisson Benefit
+<div align="center">
+<img src="figures/figure4_sparsity_benefit.png" width="900">
+</div>
+
+*Genes with higher sparsity benefit more from Poisson loss. Statistically significant positive correlation.*
+
+### Effect Sizes
+<div align="center">
+<img src="figures/figure6_effect_sizes.png" width="700">
+</div>
+
+| Effect | ΔSSIM | % Improvement |
+|--------|-------|---------------|
+| **Loss Effect** (Poisson - MSE) | +0.291 | **+153%** |
+| **Decoder Effect** (Hist2ST - Img2ST) | +0.131 | +48% |
+| **Best vs Worst** (E' - G) | +0.422 | +274% |
+
+### WSI Comparison Grid
+<div align="center">
+<img src="figures/wsi/wsi_grid_comparison.png" width="900">
+</div>
+
+*Full tissue section predictions at 2µm resolution for 4 representative genes.*
+
+### Best vs Worst Model
+<div align="center">
+<img src="figures/wsi/wsi_best_vs_worst.png" width="900">
+</div>
+
+*E' (Hist2ST + Poisson) vs G (Img2ST + MSE) across multiple genes.*
+
+---
+
+## 50 Gene List
+
+```
+NEXN, DDR2, LMOD1, PRELP, TNS1, CP, WWTR1, ADH1B, ANK2, SYNPO2,
+MAB21L2, SORBS2, C7, GPX3, SLIT3, KCNMB1, TNXB, RAB23, PLN, RSPO3,
+ABCB5, FLNC, SFRP1, FBXO32, BNC2, PGM5, OGN, JCAD, OR51A2, CHRDL2,
+CRYAB, MFAP5, LMO3, ITGA7, MSRB3, IGF1, HSPB8, SYNM, HBA2, CFD,
+KANK2, CNN1, HSPB6, PPP1R14A, ADAM33, PTGIS, KRTAP21-1, PCP4, SRPX, CHRDL1
+```
+
 ## Future Directions
 
 We validated this mechanism on Patient P5 because it has the most diverse tissue structures. We are currently running the P1/P2 cross-validation to confirm the scaling laws hold across patients.
